@@ -1,0 +1,32 @@
+Model training report
+============================================================
+
+Dataset: synthetic_dataset.csv, n=50000, CTR=0.0681
+CV folds: 5
+
+Model                       AUC    LogLoss
+------------------------------------------
+Logistic                 0.7703     0.2176
+Logistic_L2              0.7703     0.2176
+RandomForest             0.7524     0.2344
+GradientBoosting         0.7768     0.2141
+
+Best: GradientBoosting
+
+Logistic coefficients:
+  font_to_btn_ratio      -0.8000
+  scroll_to_button       -0.7823
+  contrast_ratio         +0.4824
+  font_size              +0.2607
+  btn_h                  -0.2325
+  whitespace_ratio       +0.1202
+  btn_area               +0.0953
+  btn_w                  -0.0741
+  device_mobile          +0.0545
+  text_quality           +0.0495
+  is_peak_hours          +0.0309
+  is_night               +0.0252
+  hour_cos               +0.0238
+  hour_sin               +0.0220
+
+Sign mismatches: 2
