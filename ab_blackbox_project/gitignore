@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project artefacts
+*.pkl
+synthetic_dataset.csv
+optimization_results.csv
+sensitivity_results.csv
+training_report.txt
+convergence*.gif
+convergence*.png
+*.log
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Build
+build/
+dist/
+*.egg-info/

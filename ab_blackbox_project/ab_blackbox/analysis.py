@@ -77,43 +77,6 @@ def two_proportion_ztest(n_A: int, x_A: int,
     }
 
 
-def welch_ttest(sample_A: np.ndarray,
-                sample_B: np.ndarray,
-                alpha: float = 0.05) -> Dict:
-    n_A, n_B = len(sample_A), len(sample_B)
-    mean_A   = float(sample_A.mean())
-    mean_B   = float(sample_B.mean())
-    var_A    = float(sample_A.var(ddof=1))
-    var_B    = float(sample_B.var(ddof=1))
-    delta    = mean_B - mean_A
-
-    se = np.sqrt(var_A / n_A + var_B / n_B)
-
-    if se == 0:
-        return {"error": "Zero variance in both samples."}
-
-    df = (var_A / n_A + var_B / n_B) ** 2 / (
-        (var_A / n_A) ** 2 / (n_A - 1) + (var_B / n_B) ** 2 / (n_B - 1)
-    )
-
-    t_stat = delta / se
-    p_value = 2 * stats.t.sf(abs(t_stat), df=df)
-
-    t_crit = stats.t.ppf(1 - alpha / 2, df=df)
-    ci = (delta - t_crit * se, delta + t_crit * se)
-
-    return {
-        "mean_A":        mean_A,
-        "mean_B":        mean_B,
-        "delta":         delta,
-        "relative_lift": delta / mean_A if mean_A != 0 else float("nan"),
-        "t_statistic":   float(t_stat),
-        "df":            float(df),
-        "p_value":       float(p_value),
-        "significant":   bool(p_value < alpha),
-        "ci_95":         (float(ci[0]), float(ci[1])),
-        "alpha":         alpha,
-    }
 
 
 def bootstrap_ci(sample_A: np.ndarray,

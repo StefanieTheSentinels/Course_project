@@ -62,9 +62,6 @@ DEFAULT_WEIGHTS: Dict[str, float] = {
     "beta_0_mobile":      -2.2,
     "beta_0_desktop":     -1.9,
     # Logit feature weights
-    "beta_contrast":       1.5,
-    "beta_size_mobile":    1.2,
-    "beta_size_desktop":   0.6,
     "beta_text":           0.6,
     "beta_time":           0.3,
     "beta_whitespace":     0.8,
@@ -205,11 +202,6 @@ def f_position_decay(scroll_to_button: float, lam: float = 3.0) -> float:
     return float(np.exp(-lam * (scroll_to_button - sweet)))
 
 
-# keep the old name as an alias so existing callers don't break
-def f_scroll_decay(scroll_to_button: float, lam: float = 3.0) -> float:
-    """Alias for f_position_decay (backward compatibility)."""
-    return f_position_decay(scroll_to_button, lam=lam)
-
 
 # ===========================================================================
 # Time of day  (Infolinks, 1 T impressions)
@@ -277,7 +269,7 @@ def f_margin_balance(btn_w: float, btn_h: float,
     if btn_w <= 0 or btn_h <= 0:
         return 0.0
 
-    h_cl = whitespace_ratio * btn_w                  # horizontal clearance (px)
+    h_cl = whitespace_ratio * btn_w / 2.0            # horizontal clearance (px)
     v_cl = max(btn_h - font_size, 0.0) / 2.0         # vertical clearance (px)
 
     if h_cl <= 0 and v_cl <= 0:
@@ -288,37 +280,6 @@ def f_margin_balance(btn_w: float, btn_h: float,
     ratio = min(h_cl, v_cl) / max(h_cl, v_cl)
     return 0.5 + 0.5 * ratio
 
-
-# legacy wrappers (used by total_penalty and external callers)
-def penalty_contrast(rgb_bg: Tuple[int, int, int],
-                     rgb_text: Tuple[int, int, int]) -> float:
-    return f_contrast(rgb_bg, rgb_text)
-
-
-def penalty_size(btn_w: float, btn_h: float, device: str) -> float:
-    return f_size(btn_w, btn_h, device)
-
-
-def total_penalty(font_size: float, btn_w: float, btn_h: float,
-                  rgb_bg: Tuple[int, int, int], rgb_text: Tuple[int, int, int],
-                  device: str) -> float:
-    """
-    Product of all multiplicative penalties.
-
-    Includes the two new penalties (harmony, margin balance) in addition to
-    the original three (overflow, contrast, size).
-    """
-    return (
-        penalty_overflow(font_size, btn_h)
-        * f_contrast(rgb_bg, rgb_text)
-        * f_size(btn_w, btn_h, device)
-        * f_colour_harmony(rgb_bg, rgb_text)
-        * f_margin_balance(btn_w, btn_h, font_size, whitespace_ratio=0.0)
-        # NOTE: whitespace_ratio is NOT available in the legacy signature;
-        # this call uses 0.0 (conservative) so callers that use total_penalty
-        # directly are not silently wrong.  The full p_click() call below
-        # always passes the real whitespace_ratio.
-    )
 
 
 # ===========================================================================
@@ -351,7 +312,6 @@ def p_click(params: Dict, weights: Optional[Dict[str, float]] = None) -> float:
 
     # Device-specific intercept and size weight
     beta_0    = w["beta_0_mobile"]    if device == "mobile" else w["beta_0_desktop"]
-    beta_size = w["beta_size_mobile"] if device == "mobile" else w["beta_size_desktop"]
 
     # ---- signal scores (all in [0, 1]) ----
     contrast_score = f_contrast(params["rgb_bg"], params["rgb_text"])
@@ -364,9 +324,7 @@ def p_click(params: Dict, weights: Optional[Dict[str, float]] = None) -> float:
     # penalty.  This keeps the logit's semantics as a pure accessibility /
     # usability signal and avoids double-counting harmony.
     logit = (
-        beta_0
-        + w["beta_contrast"]   * contrast_score
-        + beta_size            * size_score
+        beta_0         
         + w["beta_text"]       * float(params["text_quality"])
         + w["beta_time"]       * (time_score - 1.0)
         + w["beta_whitespace"] * ws_score
@@ -393,11 +351,3 @@ def p_click(params: Dict, weights: Optional[Dict[str, float]] = None) -> float:
     return float(np.clip(p_attractive * penalty * visibility, 0.0, 1.0))
 
 
-def sample_click(params: Dict, rng: np.random.Generator,
-                 extra_noise: float = 0.02,
-                 weights: Optional[Dict[str, float]] = None) -> Tuple[int, float]:
-    """Sample one Bernoulli click.  Returns (click, p_used)."""
-    p = p_click(params, weights=weights)
-    if extra_noise > 0:
-        p = float(np.clip(p + rng.normal(0, extra_noise), 0.0, 1.0))
-    return int(rng.binomial(1, p)), p

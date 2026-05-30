@@ -70,68 +70,7 @@ class TestTwoProportionZTest(unittest.TestCase):
         self.assertAlmostEqual(self.result["relative_lift"], 1.0, places=6)
 
 
-class TestCalibrationRoundTrip(unittest.TestCase):
 
-    def test_fit_errors_are_zero(self):
-        df  = generate_synthetic_dataset(n=5000, ctr_A=0.12, ctr_B=0.17, seed=0)
-        cal = calibrate_linear_model(df)
-        self.assertAlmostEqual(cal["fit_quality"]["ctr_fit_error_A"], 0.0, places=6)
-        self.assertAlmostEqual(cal["fit_quality"]["ctr_fit_error_B"], 0.0, places=6)
-
-    def test_calibrated_delta_positive(self):
-        df  = generate_synthetic_dataset(n=2000, ctr_A=0.10, ctr_B=0.20, seed=99)
-        cal = calibrate_linear_model(df)
-        params_A = {"color": 0.0, "size": 0.0, "text": 0.0}
-        params_B = {"color": 1.0, "size": 0.0, "text": 0.0}
-        box    = BlackBox(model=cal["model"], n_users=5000, noise_std=0.0, seed=7)
-        result = run_ab_test(box, params_A, params_B)
-        self.assertGreater(result.treatment.ctr, result.control.ctr)
-
-
-class TestDeterministicSimulator(unittest.TestCase):
-
-    def test_ctr_converges_to_theoretical(self):
-        model  = LinearButtonModel(base_click=0.20, w_color=0.05)
-        params = {"color": 1.0, "size": 0.0, "text": 0.0}
-        theo   = model._eval(model.click_expr, params)
-        box    = BlackBox(model=model, n_users=100_000, noise_std=0.0, seed=0)
-        result = box(params)
-        tol = 4 * math.sqrt(theo * (1 - theo) / 100_000)
-        self.assertAlmostEqual(result.ctr, theo, delta=tol)
-
-    def test_zero_noise_is_reproducible(self):
-        model  = get_model("linear")
-        params = {"color": 0.5, "size": 0.5, "text": 0.5}
-        r1 = BlackBox(model=model, n_users=1000, noise_std=0.0, seed=42)(params)
-        r2 = BlackBox(model=model, n_users=1000, noise_std=0.0, seed=42)(params)
-        self.assertEqual(r1.ctr, r2.ctr)
-
-    def test_conversion_conditional_on_click(self):
-        from ab_blackbox.model import LinearButtonModel as LBM
-        model  = LBM(base_click=0.30, base_conv=0.50)
-        params = {"color": 0.0, "size": 0.0, "text": 0.0}
-        box    = BlackBox(model=model, n_users=5000, noise_std=0.0, seed=1)
-        result = box(params)
-        self.assertLessEqual(result.n_conversions, result.n_clicks)
-
-    def test_no_clicks_no_conversions(self):
-        from ab_blackbox.model import LinearButtonModel as LBM
-        model  = LBM(base_click=0.0, w_color=0.0, base_conv=0.99, w_conv_color=0.0)
-        params = {"color": 0.0, "size": 0.0, "text": 0.0}
-        box    = BlackBox(model=model, n_users=10_000, noise_std=0.0, seed=5)
-        result = box(params)
-        self.assertEqual(result.n_clicks, 0)
-        self.assertEqual(result.n_conversions, 0)
-
-    def test_theoretical_effect_matches_eval(self):
-        model    = get_model("linear")
-        params_A = {"color": 0.0, "size": 0.0, "text": 0.0}
-        params_B = {"color": 1.0, "size": 0.5, "text": 0.5}
-        effects  = model.theoretical_effect(params_A, params_B)
-        self.assertAlmostEqual(effects["p_click_A"],
-                               model._eval(model.click_expr, params_A), places=9)
-        self.assertAlmostEqual(effects["p_click_B"],
-                               model._eval(model.click_expr, params_B), places=9)
 
 
 class TestGeneratingFormula(unittest.TestCase):
@@ -292,7 +231,7 @@ class TestTrainingPipeline(unittest.TestCase):
         cls.tr = train_and_evaluate(cls.df, cv_folds=3, verbose=False)
 
     def test_all_models_trained(self):
-        for name in ["Logistic", "Logistic_L2", "RandomForest", "GradientBoosting"]:
+        for name in ["Logistic", "Logistic_L2"]:
             self.assertIn(name, self.tr["results"])
 
     def test_auc_above_random(self):

@@ -7,7 +7,6 @@ Black-box A/B test simulator + ML response modelling + optimisation.
 from .model import (
     ButtonModel,
     LinearButtonModel,
-    LogisticButtonModel,
     get_model,
     TrainedMLModel,
     FullSyntheticModel,
@@ -26,31 +25,22 @@ from .analysis import (
     print_report,
     check_srm,
     two_proportion_ztest,
-    welch_ttest,
     bootstrap_ci,
 )
 
 from .datasets import (
-    load_dataset,
-    dataset_summary,
-    print_dataset_summary,
-    calibrate_linear_model,
-    generate_synthetic_dataset,
     generate_full_synthetic_dataset,
     synthetic_dataset_summary,
 )
 
 from .generating_formula import (
     p_click,
-    sample_click,
     contrast_ratio,
     relative_luminance,
     f_contrast,
     f_size,
     f_time,
     f_whitespace,
-    f_scroll_decay,
-    total_penalty,
     f_colour_harmony,
     f_position_decay,
     f_margin_balance,
@@ -69,22 +59,29 @@ from .training import (
 
 
 __all__ = [
-    "ButtonModel", "LinearButtonModel", "LogisticButtonModel", "get_model",
+    # model
+    "ButtonModel", "LinearButtonModel", "get_model",
     "TrainedMLModel", "FullSyntheticModel",
+    # simulator
     "BlackBox", "SimulationResult",
+    # experiment
     "run_ab_test", "run_multi_experiment", "ExperimentResult",
+    # analysis
     "analyze", "print_report", "check_srm",
-    "two_proportion_ztest", "welch_ttest", "bootstrap_ci",
-    "load_dataset", "dataset_summary", "print_dataset_summary",
+    "two_proportion_ztest", "bootstrap_ci",
+    # datasets
     "calibrate_linear_model",
-    "generate_synthetic_dataset",
     "generate_full_synthetic_dataset", "synthetic_dataset_summary",
-    "p_click", "sample_click",
+    # generating_formula
+    "p_click",
     "contrast_ratio", "relative_luminance",
     "f_contrast", "f_size", "f_time", "f_whitespace", "f_scroll_decay",
-    "total_penalty", "DEFAULT_WEIGHTS",
+    "total_penalty",
+    "f_colour_harmony", "f_position_decay", "f_margin_balance",
+    "DEFAULT_WEIGHTS",
+    # training
     "FEATURE_NAMES",
     "build_feature_vector", "build_feature_matrix",
     "get_models", "train_and_evaluate",
-    "logistic_coefficients", "print_coefficient_report", "f_colour_harmony", "f_position_decay", "f_margin_balance",
+    "logistic_coefficients", "print_coefficient_report",
 ]

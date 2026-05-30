@@ -79,9 +79,9 @@ class BlackBox:
         p_conv  = self._get_p_conv(params)
 
         if self.noise_std > 0:
-            p_click = float(np.clip(
-                p_click + self.rng.normal(0, self.noise_std), 0.0, 1.0
-            ))
+            logit = np.log(p_click / (1 - p_click + 1e-12))
+            logit += self.rng.normal(0, self.noise_std * 4)  # *4 ≈ компенсация масштаба
+            p_click = 1.0 / (1.0 + np.exp(-logit))
 
         clicks = self.rng.binomial(1, p_click, size=n)
 

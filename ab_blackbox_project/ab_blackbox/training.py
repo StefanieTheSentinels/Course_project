@@ -8,13 +8,11 @@ import pandas as pd
 from typing import Dict, List
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import cross_validate, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.calibration import CalibratedClassifierCV
 
-from .generating_formula import contrast_ratio, relative_luminance
+from .generating_formula import contrast_ratio
 
 
 FEATURE_NAMES: List[str] = [
