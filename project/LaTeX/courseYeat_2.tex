@@ -1,0 +1,556 @@
+\documentclass[a4paper,12pt]{extarticle}
+
+% =========================
+% Page layout (Annex 7)
+% =========================
+\usepackage[
+  left=2.5cm,
+  right=1.0cm,
+  top=2.0cm,
+  bottom=2.0cm
+]{geometry}
+
+% =========================
+% Fonts + languages
+% =========================
+\usepackage{fontspec}
+\setmainfont{CMU Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{CMU Typewriter Text}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{russian}
+
+\newfontfamily\russianfont{CMU Serif}
+\newfontfamily\russianfontsf{CMU Sans Serif}
+\newfontfamily\russianfonttt{CMU Typewriter Text}
+
+% =========================
+% Math + text
+% =========================
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{setspace}
+\usepackage{microtype}
+
+% =========================
+% Figures / plots
+% =========================
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\usepackage{caption}
+\DeclareCaptionLabelSeparator{emdash}{\space\textemdash\space}
+\captionsetup{
+  font=small,
+  labelfont=bf,
+  labelsep=emdash,
+  justification=centering
+}
+
+\graphicspath{{graphics/}}
+
+% =========================
+% Bibliography
+% =========================
+\usepackage[
+  backend=bibtex,
+  style=numeric,
+  maxbibnames=99,
+  urldate=long
+]{biblatex}
+\addbibresource{refs.bib}
+
+% =========================
+% hyperref — loaded ONCE with all options
+% =========================
+\usepackage[
+  colorlinks=true,
+  citecolor=blue,
+  linkcolor=blue,
+  urlcolor=blue,
+  bookmarks=false
+]{hyperref}
+
+% =========================
+% Formatting
+% =========================
+\setlength{\parindent}{1.25cm}
+\onehalfspacing
+\pagestyle{plain}
+\numberwithin{equation}{section}
+
+\begin{document}
+
+% 1. Title page
+\input{title_kr}
+\clearpage
+
+\setcounter{page}{2}
+
+% 2. Contents
+{
+  \hypersetup{linkcolor=black}
+  \tableofcontents
+}
+\clearpage
+
+% 3. Abstract
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+This project presents a complete black-box A/B testing pipeline applied to
+a UI button experiment. The joint system of UI element and user is treated
+as a black box: the input is the assignment of a user to control variant A or
+treatment variant B, and the outputs are product metrics (click-through rate,
+CTR) computed from logged user events. The work delivers a formalised
+experimental methodology (unit of randomisation, metric hierarchy, statistical
+analysis plan), a calibrated simulator grounded in real data, and a
+black-box parameter optimisation component that searches over button
+configuration space to maximise CTR. The project addresses common practical
+problems including sample ratio mismatch (SRM), the choice between per-user
+and per-impression CTR definitions, and the cost of black-box optimisation.
+
+\section*{Аннотация}
+\begin{otherlanguage}{russian}
+Проект представляет собой полный пайплайн A/B-тестирования в постановке
+«чёрного ящика», применённый к эксперименту с UI-кнопкой. Система
+рассматривается как чёрный ящик: входом является назначение пользователю
+варианта A (control) или B (treatment), а выходом --- продуктовые метрики
+(CTR), рассчитанные по логам событий. Результатом работы являются
+формализованная методология эксперимента, откалиброванный симулятор,
+основанный на реальных данных, и компонент оптимизации параметров кнопки.
+Рассматриваются типовые проблемы: SRM, выбор метрики CTR и стоимость
+оптимизации чёрного ящика.
+\end{otherlanguage}
+
+% 4. Keywords
+\section*{Keywords}
+\addcontentsline{toc}{section}{Keywords}
+A/B testing; online controlled experiments; black-box simulation; UI button
+experiment; CTR; per-impression CTR; SRM; black-box optimisation; SymPy;
+calibration
+
+\clearpage
+
+% 5. Introduction
+\section{Introduction}
+
+\subsection{Subject Area and Motivation}
+Modern digital products improve user experience through stepwise changes to
+UI elements, ranking logic, and recommendation features. Online randomised
+experiments (A/B tests) are the most reliable decision instrument for
+evaluating such changes, because they support causal interpretation of the
+observed effect. This project uses a UI button change as the experimental
+object, treating the button--user system as a black box to study the
+input--output relationship in isolation from the internal mechanism.
+
+\subsection{Problem Statement}
+We consider a webpage with a button whose visual parameters (colour, size,
+label text) can be varied continuously in $[0, 1]$. A new button configuration
+(version B) is proposed. The goal is to determine whether version B improves
+the primary product metric (CTR) compared to the current version A, and, given
+a calibrated simulator, to identify the configuration that maximises CTR.
+
+\textbf{Statement.} Run an A/B test where users are randomly assigned to A or
+B. Using event logs, compute agreed metrics and decide whether to deploy B.
+Additionally, query the calibrated black box to find the parameter combination
+that maximises expected CTR.
+
+\subsection{Outcomes}
+The project delivered:
+\begin{itemize}
+  \item a formalised description of the experiment, including the unit of
+        randomisation, metric hierarchy, and statistical analysis plan;
+  \item a Python package \texttt{ab\_blackbox} with symbolic response models
+        (SymPy), a black-box simulator, a statistical analysis pipeline, and
+        dataset calibration utilities;
+  \item a real-data analysis on a publicly available 120\,000-user dataset,
+        yielding a statistically significant $+10.0\%$ CTR lift and a
+        \textbf{SHIP} decision;
+  \item a black-box optimisation component comparing grid search, random
+        search, and greedy sweep, with results averaged over 20 seeds.
+\end{itemize}
+
+\clearpage
+
+% 6. Literature Review
+\section{Literature Review}
+
+The project draws on two bodies of literature: causal inference foundations
+and practical online experimentation.
+
+\paragraph{Causal foundations.}
+Rubin (1999) establishes the potential outcomes framework and shows that
+random assignment is sufficient for causal interpretation of observed
+differences~\cite{rubin1999teaching}. This paper provides the theoretical
+basis for interpreting the A/B test as a causal experiment rather than a
+mere correlation study. Our project adopts Rubin's framework explicitly
+in the Assumptions section: SUTVA, ignorability, and positivity are stated
+as preconditions, and all three are satisfied by design under user-level
+randomisation with a 50/50 split.
+
+\paragraph{Practical online A/B testing.}
+Kohavi and Longbotham (2016) describe the end-to-end lifecycle of
+online controlled experiments in production systems, including variant
+definition, randomisation unit selection, and guardrail
+metrics~\cite{kohavi2016online}. Deng et al.\ (2017) extend this with
+statistical warnings: naive analysis that ignores the randomisation unit
+underestimates variance and overstates significance~\cite{deng2017trustworthy}.
+Our project follows both papers by fixing the unit at the user level, using
+binary per-user CTR as the primary metric, and running a supplementary
+per-impression CTR analysis to confirm that the result is not an artefact
+of the metric definition.
+
+\paragraph{Pitfalls and diagnostics.}
+Johari et al.\ (2017, 2022) show that continuous monitoring invalidates
+classical hypothesis tests and propose always-valid inference
+alternatives~\cite{johari2017peeking,johari2022always}. We address this by
+using a fixed-horizon stopping rule: no interim analysis is performed, which
+keeps the type-I error at the nominal $\alpha = 0.05$. Fabijan et al.\ (2019)
+demonstrate that sample ratio mismatch (SRM) is a common and underdiagnosed
+data quality problem that can invalidate all downstream
+analysis~\cite{fabijan2019srm}. Following their recommendation, our pipeline
+runs an SRM chi-square check before any metric analysis.
+
+\clearpage
+
+% ============================================================
+\section*{Implementation Overview}
+\addcontentsline{toc}{section}{Implementation Overview}
+% ============================================================
+
+The practical component is a Python package \texttt{ab\_blackbox} with five
+modules and three scripts. Table~\ref{tab:files} lists all files and their
+roles.
+
+\begin{table}[ht]
+\centering
+\caption{Project files and their roles}
+\label{tab:files}
+\begin{tabular}{lll}
+\toprule
+\textbf{File} & \textbf{Layer} & \textbf{Role} \\
+\midrule
+\texttt{ab\_blackbox/model.py}        & Package & Symbolic response models (SymPy) \\
+\texttt{ab\_blackbox/simulator.py}    & Package & Black-box oracle \\
+\texttt{ab\_blackbox/experiment.py}   & Package & A/B experiment runner \\
+\texttt{ab\_blackbox/analysis.py}     & Package & Statistical analysis pipeline \\
+\texttt{ab\_blackbox/datasets.py}     & Package & Data loading and calibration \\
+\texttt{ab\_blackbox/\_\_init\_\_.py} & Package & Public API \\
+\texttt{demo.py}                      & Script  & Synthetic end-to-end demonstration \\
+\texttt{main.py}                      & Script  & Real-data pipeline \\
+\texttt{optimize.py}                  & Script  & Black-box parameter optimisation \\
+\texttt{tests/test\_ab\_blackbox.py}  & Tests   & 14 unit tests \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ============================================================
+\section{Experimental Design}
+% ============================================================
+
+The experiment follows a standard two-variant randomised design. Users are
+assigned independently and uniformly at random to control (A) or treatment
+(B) at the user level, ensuring consistent exposure throughout the
+experiment.
+
+The \emph{experimental object} is a button displayed to users on a webpage.
+The treatment modifies three button parameters---colour, size, and label
+text---each encoded as a continuous value in $[0, 1]$, where $0$ is the
+current default and $1$ is the fully activated alternative. The baseline
+experiment sets $\texttt{color} = 1$ while holding $\texttt{size} =
+\texttt{text} = 0$, matching the real-world dataset structure where only
+one change separates control and test.
+
+The joint system of button and user is treated as a \emph{black box}: the
+only observable quantities are the variant assignment and the output event
+log. A single call to the black box simulates the full experiment for a
+given parameter configuration and returns aggregate metrics. Call count is
+tracked to quantify the cost of optimisation.
+
+The dataset used for calibration contains $n = 60{,}000$ users per group,
+substantially exceeding the analytically derived minimum of $n = 9{,}458$
+required to detect the observed effect at $80\%$ power and $\alpha = 0.05$
+(Section~\ref{sec:stat}).
+
+% ============================================================
+\section{Metric System}
+% ============================================================
+
+Three tiers of metrics are defined prior to data collection.
+
+\paragraph{Primary metric.} Per-user click-through rate (CTR), defined
+as the fraction of users who clicked the button at least once:
+\[
+    \widehat{\mathrm{CTR}}_{\text{user}} = \frac{1}{n} \sum_{i=1}^{n}
+    \mathbf{1}[\text{clicks}_i \geq 1].
+\]
+This is a conservative definition that counts each user at most once,
+regardless of how many clicks they made.
+
+\paragraph{Supplementary metric.} Per-impression CTR, defined as the ratio
+of total clicks to total page views across all users:
+\[
+    \widehat{\mathrm{CTR}}_{\text{impression}} =
+    \frac{\sum_{i=1}^{n} \text{clicks}_i}{\sum_{i=1}^{n} \text{views}_i}.
+\]
+This metric uses the full click count and normalises by opportunity (views).
+It is reported alongside the primary metric to confirm that the result is
+not an artefact of the binary per-user definition. The two metrics are
+consistent: per-user lift $+10.0\%$, per-impression lift $+8.3\%$.
+
+\paragraph{Guardrail metric.} The sample ratio $\hat{r} = n_A/(n_A + n_B)$
+is monitored before any metric analysis. A significant deviation from
+$0.5$ (chi-square test at $\alpha = 0.01$) invalidates the experiment.
+
+% ============================================================
+\section{Data Quality and Logging}
+% ============================================================
+
+The dataset \texttt{ab\_test\_results\_aggregated\_views\_clicks\_2.csv}
+contains $120{,}000$ rows with columns \texttt{user\_id}, \texttt{group},
+\texttt{views}, and \texttt{clicks}. Groups are \texttt{control} and
+\texttt{test}. The dataset is perfectly balanced ($n_A = n_B = 60{,}000$),
+has no missing values, and no user has more clicks than views. No SRM is
+present ($p = 1.000$).
+
+The \texttt{views} column records per-user page-view counts (range 1--205,
+mean $\approx 5$). It is used to compute the per-impression CTR. The
+\texttt{clicks} column records raw click counts per user (range 0--9);
+binarised to $\mathbf{1}[\text{clicks} \geq 1]$ for the per-user CTR.
+
+% ============================================================
+\section{Statistical Analysis Plan}
+\label{sec:stat}
+% ============================================================
+
+\paragraph{Primary test.} The treatment effect on per-user CTR is estimated
+using a two-proportion $z$-test. Let $p_A$ and $p_B$ denote the true click
+probabilities. The null hypothesis is $H_0: p_B = p_A$ against the
+two-sided alternative $H_1: p_B \neq p_A$. The test statistic is
+\[
+    z = \frac{\hat{p}_B - \hat{p}_A}{\sqrt{
+        \hat{p}(1-\hat{p})\!\left(\frac{1}{n_A}+\frac{1}{n_B}\right)}},
+    \qquad
+    \hat{p} = \frac{x_A + x_B}{n_A + n_B},
+\]
+where $x_A, x_B$ are click counts. The $95\%$ CI on $\Delta = p_B - p_A$
+uses the unpooled standard error:
+\[
+    \Delta \pm z_{0.025}
+    \sqrt{\frac{\hat{p}_A(1-\hat{p}_A)}{n_A} +
+          \frac{\hat{p}_B(1-\hat{p}_B)}{n_B}}.
+\]
+
+\paragraph{Minimum sample size.}
+\[
+    n = \frac{(z_{\alpha/2} + z_{\beta})^2
+        \bigl(p_A(1-p_A) + p_B(1-p_B)\bigr)}{\delta^2},
+\]
+where $\delta = |p_B - p_A|$. Derived symbolically in \texttt{model.py}
+using SymPy and evaluated at the calibrated parameter values.
+
+\paragraph{Bootstrap robustness check.} A non-parametric bootstrap CI
+(2000 resamples, vectorised) is computed alongside the $z$-test. Agreement
+confirms the $z$-test assumptions are satisfied.
+
+\paragraph{Stopping rule.} The experiment runs for a fixed pre-determined
+duration. No interim analysis is performed, which avoids the inflated
+type-I error from continuous monitoring~\cite{johari2017peeking}.
+
+% ============================================================
+\section{Risks and Limitations}
+% ============================================================
+
+\paragraph{Novelty effect.} Users may click the new button simply because
+it is unfamiliar. The dataset contains no timestamps, so novelty decay
+cannot be measured directly. Monitoring post-deployment CTR would confirm
+whether the lift persists.
+
+\paragraph{Assumed parameter weights.} The dataset contains only two
+conditions (color=0 vs.\ color=1). The weights for \texttt{size} and
+\texttt{text} are not observed and are set equal to the colour effect
+($w = 0.0147$) as a \emph{baseline assumption with no empirical basis}.
+The optimisation results are therefore illustrative only; follow-up
+experiments varying size and text are needed to replace the assumption with
+measured values.
+
+\paragraph{Per-user binary CTR.} Using $\mathbf{1}[\text{clicks} \geq 1]$
+treats a user with one click identically to a user with nine clicks. The
+per-impression metric addresses this, and both tell a consistent story.
+
+\paragraph{Simulation noise.} The simulator adds Gaussian noise to
+$p_{\text{click}}$ once per black-box call (noise\_std$= 0.003$ for
+optimisation). This models between-experiment variation in population CTR,
+not within-experiment confounding. For calibration validation,
+noise\_std$= 0$ is used so that the simulated $\Delta$ matches the
+calibration target exactly.
+
+% ============================================================
+\section{Decision Rules}
+% ============================================================
+
+The decision framework has four outcomes:
+
+\begin{enumerate}
+    \item \textbf{INVALID}: SRM detected ($p < 0.01$). Halt; investigate.
+    \item \textbf{SHIP}: Primary metric significantly positive. Deploy B.
+    \item \textbf{REJECT}: Primary metric significantly negative. Do not deploy.
+    \item \textbf{INCONCLUSIVE}: Not significant. Increase sample size or duration.
+\end{enumerate}
+
+% ============================================================
+\section{Assumptions}
+% ============================================================
+
+The analysis rests on four assumptions from the potential outcomes
+framework~\cite{rubin1999teaching}:
+
+\begin{enumerate}
+    \item \textbf{SUTVA}: Each user's outcome depends only on their own
+          assignment (no interference between users).
+    \item \textbf{Ignorability}: Assignment is independent of potential
+          outcomes. Satisfied by design under random assignment.
+    \item \textbf{Positivity}: Each user has a non-zero probability of
+          assignment to either variant. Satisfied by the 50/50 split.
+    \item \textbf{Stable response surface}: Click probability is modelled
+          as a deterministic function of button parameters plus i.i.d.\
+          noise. Parameter interactions are not modelled.
+\end{enumerate}
+
+\clearpage
+
+% ============================================================
+\section*{Experimental Results}
+\addcontentsline{toc}{section}{Experimental Results}
+% ============================================================
+
+Table~\ref{tab:results} reports key metrics for the direct test on real
+data and the calibrated simulation (noise\_std$=0$).
+
+\begin{table}[ht]
+\centering
+\caption{A/B test results: real data and calibrated simulation}
+\label{tab:results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Source} & \textbf{CTR\,A} & \textbf{CTR\,B}
+    & $\boldsymbol{\Delta}$ & \textbf{$p$-value} \\
+\midrule
+Real data (direct $z$-test)              & 0.1470 & 0.1617 & $+0.0147$ & $<0.0001$ \\
+Calibrated simulation (noise\_std$=0$)   & 0.1462 & 0.1623 & $+0.0161$ & $<0.0001$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the direct test: $z = 7.055$, $95\%$ CI on $\Delta$: $[+0.0106,\,
++0.0188]$, relative lift $+10.0\%$. The per-impression CTR also increased
+significantly ($+8.3\%$, $z = 5.52$, $p < 0.0001$), confirming that the
+result is not an artefact of the per-user binary definition.
+
+With noise\_std$=0$, the calibrated simulation's $\Delta$ ($+0.0161$)
+is close to the real $\Delta$ ($+0.0147$); the small discrepancy is due
+to Bernoulli sampling variance with seed 42 at $n = 60{,}000$. The
+bootstrap CI $[+0.0121,\, +0.0204]$ excludes zero and agrees directionally
+with the $z$-test. No SRM was detected ($p = 1.000$). The decision rule
+yields \textbf{SHIP}.
+
+\paragraph{Required sample size.} The minimum per-group $n$ to detect
+$\delta = 0.0147$ at $80\%$ power and $\alpha = 0.05$ is $n = 9{,}458$,
+derived analytically from the SymPy model. The actual dataset
+($n = 60{,}000$) is approximately $6\times$ larger than required.
+
+\paragraph{Black-box optimisation.} Table~\ref{tab:optim} shows results
+averaged over 20 independent seeds. All three methods find the same
+optimal configuration $(\texttt{color}=1, \texttt{size}=1,
+\texttt{text}=1)$; the difference in mean CTR reflects the efficiency
+of each search strategy, not a difference in the configuration found.
+The theoretical CTR at $(1,1,1)$ from the SymPy model is $0.1912$.
+
+\begin{table}[ht]
+\centering
+\caption{Optimisation results averaged over 20 seeds. All methods find
+config $(1,1,1)$; CTR differences reflect sampling noise, not different
+optima. The theoretical CTR at $(1,1,1)$ is $0.1912$ (SymPy).}
+\label{tab:optim}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{Calls} & \textbf{Mean CTR}
+    & \textbf{Std} & \textbf{Lift vs.\ real test} \\
+\midrule
+Real experiment (A$\to$B)    & ---  & 0.1617 & ---    & (reference) \\
+Grid search                  & 125  & 0.1973 & 0.0038 & $+22.0\%$ \\
+Random search (30 calls)     &  30  & 0.1917 & 0.0037 & $+18.5\%$ \\
+Greedy 1-D sweep             &  15  & 0.1890 & 0.0061 & $+16.9\%$ \\
+SymPy theoretical            &   0  & 0.1912 & ---    & $+18.2\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ============================================================
+\section*{Discussion: Interpretation and Effects}
+\addcontentsline{toc}{section}{Discussion: Interpretation and Effects}
+% ============================================================
+
+\paragraph{Treatment effect.} The test variant produces a statistically
+significant increase in per-user CTR of $+0.0147$ (relative lift
+$+10.0\%$) and in per-impression CTR of $+0.0025$ ($+8.3\%$). The effect
+is robust: confirmed by the parametric $z$-test, the non-parametric
+bootstrap, and two complementary metric definitions.
+
+\paragraph{Black-box perspective.} Treating the button--user system as a
+black box is methodologically appropriate: no assumptions about the internal
+mechanism are required. The causal interpretation relies only on random
+assignment~\cite{rubin1999teaching}, which is satisfied by design.
+
+\paragraph{Optimisation vs.\ single test.} The standard A/B test compares
+two fixed configurations. The optimisation component extends this to a
+search over the three-dimensional parameter space. Averaging over 20 seeds
+shows that random search (30 calls) recovers a mean CTR of $0.1917$,
+compared to grid search's $0.1973$ (125 calls), illustrating the
+efficiency gain from sub-exhaustive methods. The greedy sweep uses only
+15 calls but has higher variance ($\sigma = 0.0061$), since it can miss
+parameter interactions.
+
+The SymPy theoretical value ($0.1912$) serves as the ground truth: it is
+the true model maximum at $(1,1,1)$, computed with zero black-box calls and
+zero noise. Any method's mean CTR that exceeds $0.1912$ reflects
+noise, not a superior algorithm.
+
+\paragraph{Limitations.} The weights for \texttt{size} and \texttt{text}
+are not observed from data and are set to a baseline assumption equal to
+the colour weight. Conclusions about the optimal multi-parameter
+configuration depend on this assumption. A follow-up experiment would
+allow the model to be re-calibrated with observed weights, making the
+optimisation results empirically grounded.
+
+\clearpage
+
+% ============================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+% ============================================================
+
+This project delivered a complete black-box A/B testing pipeline, from
+symbolic response modelling (SymPy) through simulation, statistical
+analysis, and parameter optimisation. The treatment variant produces a
+statistically significant $+10.0\%$ lift in per-user CTR ($+8.3\%$
+per-impression), the decision rule yields \textbf{SHIP}, and the
+optimisation component---averaged over 20 seeds---identifies configurations
+with up to $+22.0\%$ additional lift using 125 calls (grid search) or
+$+18.5\%$ with 30 calls (random search).
+
+\clearpage
+
+\printbibliography
+
+\end{document}
