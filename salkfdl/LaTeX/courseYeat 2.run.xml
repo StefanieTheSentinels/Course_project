@@ -44,11 +44,11 @@
   <internal package="biblatex" priority="9" active="0">
     <generic>latex</generic>
     <provides type="dynamic">
-      <file>Sapunov_CourseProject_244.aux</file>
-      <file>Sapunov_CourseProject_244-blx.bib</file>
+      <file>"courseYeat 2".aux</file>
+      <file>courseYeat_2-blx.bib</file>
     </provides>
     <requires type="dynamic">
-      <file>Sapunov_CourseProject_244.bbl</file>
+      <file>"courseYeat 2".bbl</file>
     </requires>
     <requires type="static">
       <file>blx-dm.def</file>
@@ -70,20 +70,20 @@
     <cmdline>
       <binary>bibtex</binary>
       <option>-min-crossrefs 2</option>
-      <infile>Sapunov_CourseProject_244</infile>
+      <infile>"courseYeat 2"</infile>
     </cmdline>
     <input>
-      <file>Sapunov_CourseProject_244.aux</file>
+      <file>"courseYeat 2".aux</file>
     </input>
     <output>
-      <file>Sapunov_CourseProject_244.bbl</file>
+      <file>"courseYeat 2".bbl</file>
     </output>
     <provides type="dynamic">
-      <file>Sapunov_CourseProject_244.bbl</file>
+      <file>"courseYeat 2".bbl</file>
     </provides>
     <requires type="dynamic">
-      <file>Sapunov_CourseProject_244.aux</file>
-      <file>Sapunov_CourseProject_244-blx.bib</file>
+      <file>"courseYeat 2".aux</file>
+      <file>courseYeat_2-blx.bib</file>
     </requires>
     <requires type="editable">
       <file>refs.bib</file>
