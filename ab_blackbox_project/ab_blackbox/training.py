@@ -135,19 +135,6 @@ def get_models() -> Dict[str, Pipeline]:
             ("clf",    LogisticRegression(penalty="l2", C=1.0, max_iter=1000,
                                           random_state=42)),
         ]),
-        "RandomForest": Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf",    RandomForestClassifier(n_estimators=200, max_depth=None,
-                                              n_jobs=-1, random_state=42)),
-        ]),
-       "GradientBoosting": Pipeline([
-            ("scaler", StandardScaler()),
-            ("clf",    CalibratedClassifierCV(
-                        GradientBoostingClassifier(n_estimators=200, max_depth=4,
-                                                    learning_rate=0.05,
-                                                    random_state=42),
-                            method="isotonic", cv=3)),
-        ]),
     }
 
 

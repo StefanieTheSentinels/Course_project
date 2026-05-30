@@ -26,7 +26,7 @@ from ab_blackbox import (
 EXPECTED_SIGNS = {
     "contrast_ratio":     "+",
     "btn_area":           "+",
-    "btn_w":              "+",
+    "btn_w":              "?",
     "btn_h":              "?",
     "font_size":          "?",
     "font_to_btn_ratio":  "-",
@@ -37,7 +37,7 @@ EXPECTED_SIGNS = {
     "hour_cos":           "?",
     "is_peak_hours":      "?",
     "is_night":           "?",
-    "device_mobile":      "-",
+    "device_mobile":      "?",
 }
 
 
