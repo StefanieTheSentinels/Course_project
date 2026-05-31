@@ -1,0 +1,4 @@
+method,ml_ctr,true_ctr,gap
+DIRECT [ML],0.2628,0.2073,0.055499999999999966
+Differential Evolution [ML],0.3303,0.1184,0.21189999999999998
+Bayesian Optimisation (GP) [ML],0.5757,0.1936,0.3821
