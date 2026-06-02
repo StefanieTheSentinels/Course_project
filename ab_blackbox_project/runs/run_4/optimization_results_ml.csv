@@ -1,0 +1,4 @@
+method,calls,best_ctr,runtime_sec,param_rgb_bg_r,param_rgb_bg_g,param_rgb_bg_b,param_rgb_text_r,param_rgb_text_g,param_rgb_text_b,param_btn_w,param_btn_h,param_font_size,param_text_quality,param_whitespace_ratio,param_scroll_to_button,param_hour,param_device
+Bayesian Optimisation (GP) [ML],200,0.525,199.21445989608765,243,255,255,70,0,9,181.82553480540975,120.0,48.0,1.0,0.5,0.0,12,desktop
+DIRECT [ML],203,0.319,0.06408381462097168,42,14,42,212,240,127,160.0,70.0,14.666666666666668,0.8333333333333333,0.41666666666666663,0.16666666666666669,12,desktop
+Differential Evolution [ML],252,0.231,0.05927896499633789,244,232,60,53,23,10,52.245787059864114,87.33328557493104,26.13880524132012,0.5599245725180185,0.23712199479389506,0.12210958479192424,12,desktop

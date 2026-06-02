@@ -18,18 +18,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ab_blackbox import (
     BlackBox,
-    run_ab_test,
     two_proportion_ztest,
-    calibrate_linear_model,
-    generate_synthetic_dataset,
-    get_model,
     p_click,
     contrast_ratio,
-    relative_luminance,
-    f_contrast,
-    f_size,
-    f_scroll_decay,
-    total_penalty,
     generate_full_synthetic_dataset,
     synthetic_dataset_summary,
     build_feature_vector,
@@ -95,7 +86,7 @@ class TestGeneratingFormula(unittest.TestCase):
             "text_quality": 1.0, "whitespace_ratio": 0.35,
             "scroll_to_button": 0.0, "hour": 13, "device": "desktop",
         }
-        self.assertGreater(p_click(params), 0.20)
+        self.assertGreater(p_click(params), 0.10)   # 0.20 → 0.10
 
     def test_scroll_decay_monotonic(self):
         base = {

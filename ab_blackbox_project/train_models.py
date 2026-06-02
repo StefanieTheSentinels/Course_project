@@ -35,9 +35,9 @@ EXPECTED_SIGNS = {
     "scroll_to_button":   "-",
     "hour_sin":           "?",
     "hour_cos":           "?",
-    "is_peak_hours":      "?",
-    "is_night":           "?",
-    "device_mobile":      "?",
+    "is_peak_hours":      "+",
+    "is_night":           "-",
+    "device_mobile":      "-",
 }
 
 
