@@ -1,4 +1,0 @@
-method,ml_mean,true_mean,gap_mean,gap_std
-Bayesian Optimisation (GP) [ML],0.5317,0.1496,0.3821,0.1097
-DIRECT [ML],0.3473,0.253,0.0943,0.0481
-Differential Evolution [ML],0.2231,0.1354,0.0876,0.0298

@@ -1,4 +1,0 @@
-method,ctr_mean,ctr_std,ctr_min,ctr_max,time_mean,n_runs
-Bayesian Optimisation (GP) [ML],0.5317,0.0241,0.5078,0.5635,275.6741,5
-DIRECT [ML],0.3473,0.0338,0.319,0.3896,0.063,5
-Differential Evolution [ML],0.2231,0.0316,0.1711,0.2568,0.0718,5

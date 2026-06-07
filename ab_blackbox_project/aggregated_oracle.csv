@@ -1,4 +1,0 @@
-method,ctr_mean,ctr_std,ctr_min,ctr_max,time_mean,n_runs
-DIRECT [ORACLE],0.3462,0.009,0.3365,0.358,0.0281,5
-Bayesian Optimisation (GP) [ORACLE],0.3301,0.0357,0.2686,0.3605,182.6204,5
-Differential Evolution [ORACLE],0.2473,0.0268,0.2012,0.2666,0.0292,5

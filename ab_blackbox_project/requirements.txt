@@ -1,8 +1,0 @@
-numpy==2.2.5
-scipy==1.15.3
-sympy==1.13.3
-pandas==2.2.3
-pytest==8.3.5
-scikit-learn==1.5.2
-scikit-optimize==0.10.2
-matplotlib==3.9.2
